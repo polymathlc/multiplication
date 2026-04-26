@@ -1088,6 +1088,230 @@
   .flex-row { display: flex; gap: var(--space-md); align-items: center; flex-wrap: wrap; }
 
   /* =========================================================
+     17b. Flashcards
+     ========================================================= */
+  .flashcard-meta {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-md);
+  }
+
+  .flashcard-stage {
+    perspective: 1400px;
+    max-width: 520px;
+    margin: 0 auto var(--space-lg);
+  }
+  .flashcard {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 8 / 5;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.55s var(--spring);
+    border-radius: var(--radius-xl);
+    outline: none;
+  }
+  .flashcard.flipped {
+    transform: rotateY(180deg);
+  }
+  .flashcard:focus-visible {
+    box-shadow: 0 0 0 4px var(--accent-light);
+  }
+  .flashcard-face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    border-radius: var(--radius-xl);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-md);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+  }
+  .flashcard-face::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-light), var(--accent-base), var(--accent-light));
+  }
+  .flashcard-face.back {
+    transform: rotateY(180deg);
+    background: var(--accent-bg);
+    border-color: var(--accent-light);
+  }
+  .flashcard-face.back::before {
+    background: linear-gradient(90deg, var(--accent-base), var(--accent-deeper), var(--accent-base));
+  }
+  .flashcard-equation {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+  .flashcard-answer {
+    font-size: 5rem;
+    font-weight: 700;
+    color: var(--accent-deeper);
+    letter-spacing: 0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .flashcard-answer-eq {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-top: var(--space-sm);
+    font-variant-numeric: tabular-nums;
+  }
+  .flashcard-tip {
+    position: absolute;
+    bottom: var(--space-md);
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  @media (max-width: 600px) {
+    .flashcard-equation { font-size: 2.75rem; }
+    .flashcard-answer   { font-size: 3.5rem; }
+    .flashcard-stage    { aspect-ratio: auto; }
+    .flashcard          { aspect-ratio: 6 / 5; }
+  }
+
+  .flashcard-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+    flex-wrap: wrap;
+  }
+  .flashcard-nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--border-medium);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-xs);
+  }
+  .flashcard-nav-btn:hover:not(:disabled) {
+    border-color: var(--accent-base);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-button);
+  }
+  .flashcard-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .flashcard-counter {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  .flashcard-mark-row {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: var(--space-lg);
+  }
+  .btn-mark {
+    padding: 10px 20px;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: 2px solid;
+    background: var(--bg-primary);
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-xs);
+  }
+  .btn-mark:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-button);
+  }
+  .btn-mark.still-learning {
+    border-color: var(--coral-base);
+    color: var(--coral-base);
+  }
+  .btn-mark.still-learning:hover {
+    background: var(--coral-bg);
+  }
+  .btn-mark.got-it {
+    border-color: var(--accent-deeper);
+    color: var(--accent-deeper);
+  }
+  .btn-mark.got-it:hover {
+    background: var(--accent-bg);
+  }
+
+  .flashcard-progress-row {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md) var(--space-lg);
+    margin-bottom: var(--space-lg);
+    font-size: 0.875rem;
+  }
+  .flashcard-progress-row .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+  }
+  .pill.pill-got    { background: var(--accent-bg);  color: var(--accent-deeper); }
+  .pill.pill-still  { background: var(--coral-bg);   color: var(--coral-base); }
+  .pill.pill-todo   { background: var(--bg-tertiary); color: var(--text-secondary); }
+
+  .flashcard-done {
+    text-align: center;
+    padding: var(--space-2xl) var(--space-lg);
+  }
+  .flashcard-done .results-emoji {
+    font-size: 3.5rem;
+    margin-bottom: var(--space-md);
+  }
+  .flashcard-done .results-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+  }
+  .flashcard-done .results-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xl);
+  }
+
+  /* =========================================================
      18. Print Styles
      ========================================================= */
   @media print {
@@ -1219,6 +1443,11 @@
           <div class="mode-name">Speed Drill</div>
           <div class="mode-desc">60 seconds — how many can you get? Build instant recall and fluency.</div>
         </button>
+        <button class="mode-card" data-mode="flashcards" onclick="selectMode('flashcards')">
+          <div class="mode-icon">🃏</div>
+          <div class="mode-name">Flashcards</div>
+          <div class="mode-desc">Flip through cards at your own pace. Mark each one "got it" or "still learning".</div>
+        </button>
       </div>
     </div>
 
@@ -1237,7 +1466,7 @@
           </div>
         </div>
 
-        <div class="setting-group">
+        <div class="setting-group" id="inputModeGroup">
           <div class="setting-label">Answer Method</div>
           <div class="chip-row" id="inputModeChips">
             <button class="chip active" data-input="type" onclick="selectInputMode('type')">Type the answer</button>
@@ -1248,7 +1477,7 @@
       </div>
 
       <div class="settings-row">
-        <div class="setting-group">
+        <div class="setting-group" id="questionStyleGroup">
           <div class="setting-label">Question Style</div>
           <div class="chip-row" id="questionStyleChips">
             <button class="chip active" data-style="standard" onclick="selectQuestionStyle('standard')">Standard (a × b = ?)</button>
@@ -1330,6 +1559,80 @@
 
     <div class="text-center">
       <button class="btn btn-ghost btn-sm" onclick="confirmEndSession()">End session early</button>
+    </div>
+  </section>
+
+  <!-- ============================================
+       FLASHCARDS SCREEN
+       ============================================ -->
+  <section id="flashcardsScreen" class="hidden">
+    <div id="flashcardsActiveView">
+      <div class="flashcard-progress-row">
+        <span class="pill pill-got">✓ Got it: <span id="fcGotCount">0</span></span>
+        <span class="pill pill-still">↻ Still learning: <span id="fcStillCount">0</span></span>
+        <span class="pill pill-todo">To review: <span id="fcTodoCount">0</span></span>
+      </div>
+
+      <div class="flashcard-meta" id="flashcardMeta">From the 7 times table</div>
+
+      <div class="flashcard-stage">
+        <div class="flashcard" id="flashcard" tabindex="0" role="button"
+             aria-label="Flashcard. Click or press space to flip."
+             onclick="flipFlashcard()">
+          <div class="flashcard-face front">
+            <div class="flashcard-equation" id="flashcardFront">7 × 8</div>
+            <div class="flashcard-tip">Tap card or press Space to flip</div>
+          </div>
+          <div class="flashcard-face back">
+            <div class="flashcard-answer" id="flashcardAnswer">56</div>
+            <div class="flashcard-answer-eq" id="flashcardAnswerEq">7 × 8 = 56</div>
+            <div class="flashcard-tip">Tap card or press Space to flip back</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flashcard-controls">
+        <button class="flashcard-nav-btn" id="fcPrevBtn" onclick="prevFlashcard()" aria-label="Previous card">‹</button>
+        <div class="flashcard-counter" id="fcCounter">1 / 20</div>
+        <button class="flashcard-nav-btn" id="fcNextBtn" onclick="nextFlashcard()" aria-label="Next card">›</button>
+      </div>
+
+      <div class="flashcard-mark-row">
+        <button class="btn-mark still-learning" onclick="markFlashcard('still')">↻ Still learning</button>
+        <button class="btn-mark got-it" onclick="markFlashcard('got')">✓ Got it</button>
+      </div>
+
+      <div class="text-center">
+        <button class="btn btn-secondary btn-sm" onclick="shuffleFlashcards()">Shuffle deck</button>
+        <button class="btn btn-ghost btn-sm" onclick="endFlashcardsSession()" style="margin-left: var(--space-sm);">Finish</button>
+      </div>
+    </div>
+
+    <div id="flashcardsDoneView" class="hidden flashcard-done">
+      <div class="results-emoji" id="fcDoneEmoji">🃏</div>
+      <h1 class="results-title" id="fcDoneTitle">Deck complete!</h1>
+      <p class="results-subtitle" id="fcDoneSubtitle">Nice work reviewing your cards.</p>
+
+      <div class="results-stats">
+        <div class="result-stat">
+          <div class="result-stat-value" id="fcDoneGot">0</div>
+          <div class="result-stat-label">Got it</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-value" id="fcDoneStill">0</div>
+          <div class="result-stat-label">Still learning</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-value" id="fcDoneTotal">0</div>
+          <div class="result-stat-label">Cards reviewed</div>
+        </div>
+      </div>
+
+      <div class="text-center mt-xl">
+        <button class="btn btn-primary btn-lg" onclick="goToSetup()">Back to menu</button>
+        <button class="btn btn-secondary btn-lg" id="fcRestartStillBtn" onclick="restartFlashcardsStillLearning()" style="margin-left: var(--space-sm);">Practise still-learning</button>
+        <button class="btn btn-secondary btn-lg" onclick="restartFlashcards()" style="margin-left: var(--space-sm);">Restart deck</button>
+      </div>
     </div>
   </section>
 
@@ -1433,7 +1736,13 @@
     speedDrillTimeLeft: 60,
     answeredCurrent: false,
     hintShown: false,
-    sessionAchievements: [] // ids unlocked this session
+    sessionAchievements: [], // ids unlocked this session
+    // Flashcards-specific state
+    flashcards: {
+      deck: [],           // [{a, b, ans, status: 'todo'|'got'|'still'}]
+      index: 0,
+      flipped: false
+    }
   };
 
   /* =========================================================
@@ -1616,6 +1925,20 @@
       qcGroup.style.opacity = '1';
       qcGroup.style.pointerEvents = 'auto';
     }
+    // Answer method and question style don't apply to flashcards
+    var inputModeGroup    = document.getElementById('inputModeGroup');
+    var questionStyleGroup = document.getElementById('questionStyleGroup');
+    var dim = mode === 'flashcards';
+    [inputModeGroup, questionStyleGroup].forEach(function(g) {
+      if (!g) return;
+      g.style.opacity = dim ? '0.45' : '1';
+      g.style.pointerEvents = dim ? 'none' : 'auto';
+    });
+    // Update start button label for flashcards
+    var startBtn = document.getElementById('startBtn');
+    if (startBtn) {
+      startBtn.textContent = mode === 'flashcards' ? 'Start Flashcards →' : 'Start Practising →';
+    }
     updateSelectionSummary();
   }
 
@@ -1653,7 +1976,8 @@
     var modeLabel = {
       practice: 'Practice mode (no timer, hints on)',
       quiz: 'Quiz of ' + session.questionCount + ' questions',
-      speed: 'Speed Drill (60 seconds)'
+      speed: 'Speed Drill (60 seconds)',
+      flashcards: 'Flashcards (' + session.questionCount + ' cards)'
     }[session.mode];
     summary.textContent =
       'Practising the ' + sorted.join(', ') + ' times ' +
@@ -1732,6 +2056,11 @@
      ========================================================= */
   function startSession() {
     if (session.selectedTables.length === 0) return;
+
+    if (session.mode === 'flashcards') {
+      startFlashcardsSession();
+      return;
+    }
 
     // Reset session-tracked counters but keep selections + settings
     session.questions     = generateQuestions();
@@ -2609,6 +2938,7 @@
   function goToSetup() {
     document.getElementById('resultsScreen').classList.add('hidden');
     document.getElementById('practiceScreen').classList.add('hidden');
+    document.getElementById('flashcardsScreen').classList.add('hidden');
     document.getElementById('setupScreen').classList.remove('hidden');
     buildTableGrid();              // refresh mastery dots
     setSelectedTables(session.selectedTables); // re-apply selections after rebuild
@@ -2656,10 +2986,220 @@
   }
 
   /* =========================================================
+     FLASHCARDS
+     ========================================================= */
+  function buildFlashcardDeck(count) {
+    var pool = buildQuestionPool(session.selectedTables);
+    var shuffled = shuffleArray(pool);
+    var deck = [];
+    var idx = 0;
+    while (deck.length < count) {
+      if (idx >= shuffled.length) {
+        shuffled = shuffleArray(pool);
+        idx = 0;
+      }
+      var item = shuffled[idx++];
+      deck.push({
+        a: item.a,
+        b: item.b,
+        ans: item.a * item.b,
+        status: 'todo'
+      });
+    }
+    return deck;
+  }
+
+  function startFlashcardsSession() {
+    session.flashcards.deck    = buildFlashcardDeck(session.questionCount);
+    session.flashcards.index   = 0;
+    session.flashcards.flipped = false;
+
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('practiceScreen').classList.add('hidden');
+    document.getElementById('resultsScreen').classList.add('hidden');
+    document.getElementById('flashcardsScreen').classList.remove('hidden');
+    document.getElementById('flashcardsActiveView').classList.remove('hidden');
+    document.getElementById('flashcardsDoneView').classList.add('hidden');
+
+    renderFlashcard();
+    setTimeout(function() {
+      var card = document.getElementById('flashcard');
+      if (card) card.focus();
+    }, 50);
+  }
+
+  function renderFlashcard() {
+    var deck = session.flashcards.deck;
+    var i    = session.flashcards.index;
+    if (deck.length === 0) return;
+    var card = deck[i];
+
+    document.getElementById('flashcardFront').innerHTML    = card.a + ' × ' + card.b;
+    document.getElementById('flashcardAnswer').textContent = card.ans;
+    document.getElementById('flashcardAnswerEq').textContent =
+      card.a + ' × ' + card.b + ' = ' + card.ans;
+    document.getElementById('flashcardMeta').textContent =
+      'From the ' + card.a + ' times table';
+
+    document.getElementById('fcCounter').textContent = (i + 1) + ' / ' + deck.length;
+    document.getElementById('fcPrevBtn').disabled = (i === 0);
+    document.getElementById('fcNextBtn').disabled = (i >= deck.length - 1);
+
+    updateFlashcardCounts();
+
+    // Always start each card unflipped
+    session.flashcards.flipped = false;
+    var fc = document.getElementById('flashcard');
+    fc.classList.remove('flipped');
+  }
+
+  function updateFlashcardCounts() {
+    var got = 0, still = 0, todo = 0;
+    session.flashcards.deck.forEach(function(c) {
+      if (c.status === 'got') got++;
+      else if (c.status === 'still') still++;
+      else todo++;
+    });
+    document.getElementById('fcGotCount').textContent  = got;
+    document.getElementById('fcStillCount').textContent = still;
+    document.getElementById('fcTodoCount').textContent  = todo;
+  }
+
+  function flipFlashcard() {
+    session.flashcards.flipped = !session.flashcards.flipped;
+    var fc = document.getElementById('flashcard');
+    fc.classList.toggle('flipped', session.flashcards.flipped);
+  }
+
+  function nextFlashcard() {
+    var i = session.flashcards.index;
+    if (i >= session.flashcards.deck.length - 1) return;
+    session.flashcards.index = i + 1;
+    renderFlashcard();
+  }
+
+  function prevFlashcard() {
+    var i = session.flashcards.index;
+    if (i <= 0) return;
+    session.flashcards.index = i - 1;
+    renderFlashcard();
+  }
+
+  function markFlashcard(status) {
+    var deck = session.flashcards.deck;
+    var i    = session.flashcards.index;
+    if (deck.length === 0) return;
+    deck[i].status = status === 'got' ? 'got' : 'still';
+    updateFlashcardCounts();
+    playTone(status === 'got' ? 880 : 440, 0.08, 'sine');
+
+    if (i >= deck.length - 1) {
+      // Last card — go to deck-complete view
+      showFlashcardsDone();
+    } else {
+      session.flashcards.index = i + 1;
+      renderFlashcard();
+    }
+  }
+
+  function shuffleFlashcards() {
+    session.flashcards.deck  = shuffleArray(session.flashcards.deck);
+    session.flashcards.index = 0;
+    renderFlashcard();
+    showToast('🔀', 'Deck shuffled', 'Cards reordered.');
+  }
+
+  function showFlashcardsDone() {
+    var got = 0, still = 0, total = 0;
+    session.flashcards.deck.forEach(function(c) {
+      if (c.status === 'got')   got++;
+      if (c.status === 'still') still++;
+      if (c.status !== 'todo')  total++;
+    });
+    document.getElementById('fcDoneGot').textContent   = got;
+    document.getElementById('fcDoneStill').textContent = still;
+    document.getElementById('fcDoneTotal').textContent = total;
+
+    var emoji, title, subtitle;
+    if (still === 0 && got > 0) {
+      emoji = '🌟';
+      title = 'Whole deck nailed!';
+      subtitle = 'You marked every card "got it". Strong recall — well done.';
+    } else if (got >= still) {
+      emoji = '👍';
+      title = 'Deck complete!';
+      subtitle = 'Lots of "got it"s. Keep practising the still-learning ones.';
+    } else if (still > 0) {
+      emoji = '📚';
+      title = 'Deck complete';
+      subtitle = 'You\'ve flagged the trickier ones. Practise them again to lock them in.';
+    } else {
+      emoji = '🃏';
+      title = 'Deck complete!';
+      subtitle = 'Nice work reviewing your cards.';
+    }
+    document.getElementById('fcDoneEmoji').textContent    = emoji;
+    document.getElementById('fcDoneTitle').textContent    = title;
+    document.getElementById('fcDoneSubtitle').textContent = subtitle;
+
+    // Disable "practise still-learning" if there are none
+    document.getElementById('fcRestartStillBtn').disabled = (still === 0);
+
+    document.getElementById('flashcardsActiveView').classList.add('hidden');
+    document.getElementById('flashcardsDoneView').classList.remove('hidden');
+    document.getElementById('flashcardsScreen').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function endFlashcardsSession() {
+    showFlashcardsDone();
+  }
+
+  function restartFlashcards() {
+    session.flashcards.deck.forEach(function(c) { c.status = 'todo'; });
+    session.flashcards.index = 0;
+    document.getElementById('flashcardsActiveView').classList.remove('hidden');
+    document.getElementById('flashcardsDoneView').classList.add('hidden');
+    renderFlashcard();
+  }
+
+  function restartFlashcardsStillLearning() {
+    var still = session.flashcards.deck.filter(function(c) { return c.status === 'still'; });
+    if (still.length === 0) return;
+    session.flashcards.deck = still.map(function(c) {
+      return { a: c.a, b: c.b, ans: c.ans, status: 'todo' };
+    });
+    session.flashcards.index = 0;
+    document.getElementById('flashcardsActiveView').classList.remove('hidden');
+    document.getElementById('flashcardsDoneView').classList.add('hidden');
+    renderFlashcard();
+    showToast('🔁', 'Reviewing tricky ones', still.length + ' card' + (still.length === 1 ? '' : 's') + ' to practise.');
+  }
+
+  /* =========================================================
      KEYBOARD SHORTCUTS
      ========================================================= */
   function setupKeyboard() {
     document.addEventListener('keydown', function(e) {
+      var flashcardsVisible = !document.getElementById('flashcardsScreen').classList.contains('hidden')
+                            && !document.getElementById('flashcardsActiveView').classList.contains('hidden');
+      if (flashcardsVisible) {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          flipFlashcard();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          nextFlashcard();
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          prevFlashcard();
+        } else if (e.key === 'g' || e.key === 'G') {
+          markFlashcard('got');
+        } else if (e.key === 'l' || e.key === 'L' || e.key === 's' || e.key === 'S') {
+          markFlashcard('still');
+        }
+        return;
+      }
+
       var practiceVisible = !document.getElementById('practiceScreen').classList.contains('hidden');
       if (!practiceVisible) return;
 
