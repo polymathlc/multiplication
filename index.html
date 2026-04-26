@@ -224,6 +224,71 @@
     animation: fadeInUp 0.5s ease-out both;
   }
 
+  /* Long division learning segment */
+  .division-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-xs);
+  }
+  .division-problem {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.02em;
+    margin-bottom: var(--space-md);
+  }
+  .division-meta {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: var(--space-md);
+  }
+  .division-answer-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  .division-input {
+    width: 100%;
+    border: 2px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    font-size: 1.05rem;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+  .division-input:focus {
+    outline: none;
+    border-color: var(--accent-base);
+    box-shadow: 0 0 0 3px rgba(129, 199, 132, 0.18);
+  }
+  .division-feedback {
+    min-height: 44px;
+    margin-top: var(--space-sm);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    display: none;
+  }
+  .division-feedback.show { display: block; }
+  .division-feedback.correct {
+    background: var(--success-bg);
+    color: var(--success);
+    border: 1px solid rgba(46, 125, 50, 0.2);
+  }
+  .division-feedback.incorrect {
+    background: var(--error-bg);
+    color: var(--error);
+    border: 1px solid rgba(198, 40, 40, 0.2);
+  }
+  @media (max-width: 560px) {
+    .division-answer-row { grid-template-columns: 1fr; }
+    .division-problem { font-size: 1.75rem; }
+  }
+
   /* =========================================================
      5. Times Table Selection Grid
      ========================================================= */
@@ -1501,6 +1566,48 @@
     <!-- Reset stats button (small, at bottom) -->
     <div class="text-center" style="margin-top: var(--space-2xl);">
       <button class="btn btn-ghost btn-sm" onclick="confirmResetStats()">Reset all-time stats</button>
+    </div>
+  </section>
+
+  <!-- ============================================
+       LONG DIVISION LEARNING SEGMENT
+       ============================================ -->
+  <section id="longDivisionSection" class="section-block">
+    <div class="section-heading">Long Division Segment — Quotient &amp; Remainder</div>
+    <div class="division-card">
+      <p class="page-subtitle" style="margin-bottom: var(--space-md); max-width: none;">
+        Practise <strong>3-digit ÷ 1-digit</strong>. Solve for both <strong>quotient</strong> and <strong>remainder</strong>.
+      </p>
+
+      <div class="setting-group" style="margin-bottom: var(--space-md);">
+        <div class="setting-label">Problem Type</div>
+        <div class="chip-row" id="divisionModeChips">
+          <button class="chip active" data-division-mode="mixed" onclick="setDivisionRemainderMode('mixed')">Mixed (with/without remainder)</button>
+          <button class="chip" data-division-mode="without" onclick="setDivisionRemainderMode('without')">No remainder only</button>
+          <button class="chip" data-division-mode="with" onclick="setDivisionRemainderMode('with')">With remainder only</button>
+        </div>
+      </div>
+
+      <div class="division-problem" id="divisionProblem">___ ÷ _ = ?</div>
+      <div class="division-meta" id="divisionMeta">Press "Generate question" to begin.</div>
+
+      <div class="division-answer-row">
+        <div>
+          <div class="setting-label" style="margin-bottom: 6px;">Quotient</div>
+          <input id="divisionQuotientInput" class="division-input" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Enter quotient" />
+        </div>
+        <div>
+          <div class="setting-label" style="margin-bottom: 6px;">Remainder</div>
+          <input id="divisionRemainderInput" class="division-input" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Enter remainder (0 if none)" />
+        </div>
+      </div>
+
+      <div class="quick-options">
+        <button class="btn btn-secondary btn-sm" onclick="generateLongDivisionProblem()">Generate question</button>
+        <button class="btn btn-primary btn-sm" onclick="checkLongDivisionAnswer()">Check answer</button>
+      </div>
+
+      <div class="division-feedback" id="divisionFeedback"></div>
     </div>
   </section>
 
@@ -3176,6 +3283,120 @@
   }
 
   /* =========================================================
+     LONG DIVISION SEGMENT
+     ========================================================= */
+  var divisionState = {
+    dividend: 0,
+    divisor: 0,
+    quotient: 0,
+    remainder: 0,
+    mode: 'mixed',
+    generated: false
+  };
+
+  function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function setDivisionRemainderMode(mode) {
+    divisionState.mode = mode;
+    document.querySelectorAll('#divisionModeChips .chip').forEach(function(chip) {
+      chip.classList.toggle('active', chip.getAttribute('data-division-mode') === mode);
+    });
+    generateLongDivisionProblem();
+  }
+
+  function generateLongDivisionProblem() {
+    var forceRemainder = divisionState.mode === 'with';
+    var forceNoRemainder = divisionState.mode === 'without';
+    var wantsRemainder = forceRemainder ? true : (forceNoRemainder ? false : Math.random() < 0.5);
+
+    var dividend = 0;
+    var divisor = 0;
+    var quotient = 0;
+    var remainder = 0;
+    var attempts = 0;
+
+    while (attempts < 500) {
+      attempts += 1;
+      divisor = randomInt(1, 9);
+      quotient = randomInt(12, 999);
+      remainder = wantsRemainder ? randomInt(1, divisor - 1 || 1) : 0;
+      dividend = divisor * quotient + remainder;
+      if (dividend >= 100 && dividend <= 999 && remainder < divisor) break;
+    }
+
+    if (wantsRemainder && divisor === 1) {
+      divisor = randomInt(2, 9);
+      quotient = randomInt(12, 110);
+      remainder = randomInt(1, divisor - 1);
+      dividend = divisor * quotient + remainder;
+    }
+
+    divisionState.dividend = dividend;
+    divisionState.divisor = divisor;
+    divisionState.quotient = quotient;
+    divisionState.remainder = remainder;
+    divisionState.generated = true;
+
+    document.getElementById('divisionProblem').textContent = dividend + ' ÷ ' + divisor + ' = ?';
+    document.getElementById('divisionMeta').textContent = remainder === 0
+      ? 'This one divides evenly (remainder 0).'
+      : 'This one has a remainder.';
+
+    document.getElementById('divisionQuotientInput').value = '';
+    document.getElementById('divisionRemainderInput').value = '';
+
+    var feedback = document.getElementById('divisionFeedback');
+    feedback.className = 'division-feedback';
+    feedback.textContent = '';
+  }
+
+  function checkLongDivisionAnswer() {
+    if (!divisionState.generated) {
+      generateLongDivisionProblem();
+      return;
+    }
+
+    var qInput = document.getElementById('divisionQuotientInput');
+    var rInput = document.getElementById('divisionRemainderInput');
+    var feedback = document.getElementById('divisionFeedback');
+
+    var q = parseInt(qInput.value, 10);
+    var r = parseInt(rInput.value, 10);
+
+    if (isNaN(q) || isNaN(r)) {
+      feedback.className = 'division-feedback incorrect show';
+      feedback.textContent = 'Please enter both quotient and remainder. Use 0 if there is no remainder.';
+      return;
+    }
+
+    if (r < 0 || r >= divisionState.divisor) {
+      feedback.className = 'division-feedback incorrect show';
+      feedback.textContent = 'Remainder must be at least 0 and less than the divisor (' + divisionState.divisor + ').';
+      return;
+    }
+
+    var isCorrect = (q === divisionState.quotient && r === divisionState.remainder);
+    if (isCorrect) {
+      feedback.className = 'division-feedback correct show';
+      feedback.innerHTML =
+        'Correct! <strong>' + divisionState.dividend + ' ÷ ' + divisionState.divisor + ' = ' + q +
+        '</strong> remainder <strong>' + r + '</strong>.<br>' +
+        'Check: ' + divisionState.divisor + ' × ' + q + ' + ' + r + ' = ' + divisionState.dividend + '.';
+      playTone(880, 0.08, 'sine');
+    } else {
+      feedback.className = 'division-feedback incorrect show';
+      feedback.innerHTML =
+        'Not quite. Correct answer is <strong>' + divisionState.quotient + '</strong> remainder <strong>' +
+        divisionState.remainder + '</strong>.<br>' +
+        'Because ' + divisionState.divisor + ' × ' + divisionState.quotient + ' + ' +
+        divisionState.remainder + ' = ' + divisionState.dividend + '.';
+      playTone(440, 0.12, 'triangle');
+    }
+  }
+
+  /* =========================================================
      KEYBOARD SHORTCUTS
      ========================================================= */
   function setupKeyboard() {
@@ -3249,6 +3470,7 @@
     document.getElementById('soundBtn').addEventListener('click', toggleSound);
 
     setupKeyboard();
+    generateLongDivisionProblem();
   }
 
   // Run init when DOM is ready
