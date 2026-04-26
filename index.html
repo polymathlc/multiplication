@@ -289,6 +289,166 @@
     .division-problem { font-size: 1.75rem; }
   }
 
+  /* Step-by-step long division stepper */
+  .ld-stage {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg) var(--space-md);
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+    margin-bottom: var(--space-md);
+  }
+  .ld-grid {
+    display: grid;
+    grid-template-columns: auto auto repeat(var(--ld-n, 3), 40px);
+    column-gap: 0;
+    row-gap: 4px;
+    font-family: var(--font-roboto);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+  .ld-divisor {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px 0 4px;
+    font-size: 1.6rem;
+  }
+  .ld-bracket {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.6rem;
+    font-weight: 300;
+    line-height: 1;
+    color: var(--text-primary);
+    transform: scaleY(1.2);
+    padding: 0 2px 0 0;
+  }
+  .ld-digit, .ld-bring-down {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 38px;
+  }
+  .ld-top-line {
+    border-top: 2.5px solid var(--text-primary);
+    height: 0;
+    align-self: end;
+    margin-bottom: 2px;
+  }
+  .ld-subline {
+    border-bottom: 2px solid var(--text-primary);
+    height: 4px;
+    align-self: end;
+  }
+  .ld-input {
+    width: 32px;
+    height: 38px;
+    margin: 0 4px;
+    border: 2px solid var(--border-medium);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    font-family: inherit;
+    padding: 0;
+    color: var(--text-tertiary);
+    transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+    justify-self: center;
+  }
+  .ld-input:focus { outline: none; }
+  .ld-input.active {
+    background: var(--accent-bg);
+    border-color: var(--accent-base);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 3px rgba(129, 199, 132, 0.25);
+    animation: ldPulse 1.6s ease-in-out infinite;
+  }
+  .ld-input.locked {
+    opacity: 0.35;
+    background: var(--bg-tertiary);
+    cursor: not-allowed;
+  }
+  .ld-input.correct {
+    background: var(--success-bg);
+    border-color: var(--success);
+    color: var(--success);
+    animation: ldCorrectPop 0.4s ease;
+    box-shadow: none;
+  }
+  .ld-input.incorrect {
+    background: var(--error-bg);
+    border-color: var(--error);
+    color: var(--error);
+    animation: ldShake 0.4s ease;
+  }
+  .ld-bring-down {
+    color: var(--accent-deeper);
+  }
+  .ld-reveal {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    transform: translateY(-6px);
+  }
+  .ld-reveal.revealed {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .ld-bring-down.bringing-down {
+    animation: ldBringDown 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  @keyframes ldPulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(129, 199, 132, 0.25); }
+    50%      { box-shadow: 0 0 0 6px rgba(129, 199, 132, 0.45); }
+  }
+  @keyframes ldCorrectPop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+  @keyframes ldShake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+  }
+  @keyframes ldBringDown {
+    0%   { transform: translateY(-36px) scale(0.9); opacity: 0; }
+    55%  { transform: translateY(4px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .ld-instruction {
+    text-align: center;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-top: var(--space-md);
+    min-height: 1.6em;
+    line-height: 1.5;
+  }
+  .ld-instruction strong { color: var(--accent-deeper); }
+  .ld-final-banner {
+    display: none;
+    margin-top: var(--space-md);
+    background: var(--accent-bg);
+    color: var(--accent-deeper);
+    border: 1px solid var(--accent-base);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    text-align: center;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    animation: fadeInUp 0.5s ease both;
+  }
+  .ld-final-banner.show { display: block; }
+
   /* =========================================================
      5. Times Table Selection Grid
      ========================================================= */
@@ -1608,6 +1768,32 @@
       </div>
 
       <div class="division-feedback" id="divisionFeedback"></div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       LONG DIVISION STEP-BY-STEP STEPPER
+       ============================================ -->
+  <section id="ldStepperSection" class="section-block">
+    <div class="section-heading">Step-by-step Long Division — Fill in the Blanks</div>
+    <div class="division-card">
+      <p class="page-subtitle" style="margin-bottom: var(--space-md); max-width: none;">
+        Solve each blank in order. Each correct answer unlocks the next step with an animation.
+      </p>
+
+      <div class="ld-stage">
+        <div class="ld-grid" id="ldGrid"></div>
+      </div>
+
+      <div class="ld-instruction" id="ldInstruction">Press "New problem" to begin.</div>
+
+      <div class="quick-options" style="margin-top: var(--space-md); justify-content: center;">
+        <button class="btn btn-secondary btn-sm" onclick="generateLongDivisionStepper()">New problem</button>
+        <button class="btn btn-ghost btn-sm" onclick="ldShowHint()">Hint</button>
+        <button class="btn btn-ghost btn-sm" onclick="ldRevealAnswer()">Show answer</button>
+      </div>
+
+      <div class="ld-final-banner" id="ldFinalBanner"></div>
     </div>
   </section>
 
@@ -3397,6 +3583,517 @@
   }
 
   /* =========================================================
+     LONG DIVISION STEP-BY-STEP STEPPER
+     ========================================================= */
+  var ldStepper = {
+    problem: null,
+    currentStep: 0,
+    subStep: 'q', // 'q' | 'p' | 's' | 'done'
+    done: false
+  };
+
+  function computeLongDivisionSteps(dividend, divisor) {
+    var digits = String(dividend).split('').map(Number);
+    var n = digits.length;
+
+    var startIdx = 0;
+    var test = 0;
+    for (var i = 0; i < n; i++) {
+      test = test * 10 + digits[i];
+      if (test >= divisor) { startIdx = i; break; }
+      if (i === n - 1) startIdx = n - 1;
+    }
+
+    var current = 0;
+    for (var j = 0; j <= startIdx; j++) current = current * 10 + digits[j];
+
+    var steps = [];
+    for (var pos = startIdx; pos < n; pos++) {
+      var qDigit = Math.floor(current / divisor);
+      var product = qDigit * divisor;
+      var sub = current - product;
+      var productStr = String(product);
+      var productDigits = productStr.split('').map(Number);
+      var productStartCol = pos - productDigits.length + 1;
+      var subStr = String(sub);
+      var subDigits = subStr.split('').map(Number);
+      var subStartCol = pos - subDigits.length + 1;
+      var bringDownCol = pos < n - 1 ? pos + 1 : null;
+      var bringDownDigit = bringDownCol !== null ? digits[bringDownCol] : null;
+
+      steps.push({
+        pos: pos,
+        currentValue: current,
+        qDigit: qDigit,
+        product: product,
+        productDigits: productDigits,
+        productStartCol: productStartCol,
+        sub: sub,
+        subDigits: subDigits,
+        subStartCol: subStartCol,
+        bringDownDigit: bringDownDigit,
+        bringDownCol: bringDownCol
+      });
+
+      if (bringDownDigit !== null) {
+        current = sub * 10 + bringDownDigit;
+      }
+    }
+
+    return {
+      dividend: dividend,
+      divisor: divisor,
+      digits: digits,
+      n: n,
+      startIdx: startIdx,
+      steps: steps,
+      quotient: steps.map(function(s) { return String(s.qDigit); }).join(''),
+      finalRemainder: steps[steps.length - 1].sub
+    };
+  }
+
+  function generateLongDivisionStepper() {
+    var divisor, dividend, attempts = 0;
+    var withRemainder = Math.random() < 0.5;
+    var quot, rem;
+    do {
+      divisor = randomInt(2, 9);
+      var minQ = Math.ceil(100 / divisor);
+      var maxQ = Math.floor(999 / divisor);
+      quot = randomInt(minQ, maxQ);
+      rem = withRemainder ? randomInt(1, divisor - 1) : 0;
+      dividend = divisor * quot + rem;
+      attempts += 1;
+    } while ((dividend < 100 || dividend > 999) && attempts < 50);
+
+    if (dividend < 100 || dividend > 999) {
+      divisor = 4; dividend = 736; // safe fallback
+    }
+
+    ldStepper.problem = computeLongDivisionSteps(dividend, divisor);
+    ldStepper.currentStep = 0;
+    ldStepper.subStep = 'q';
+    ldStepper.done = false;
+
+    document.getElementById('ldFinalBanner').classList.remove('show');
+
+    renderLongDivisionStepper();
+    setLDInstruction();
+    setTimeout(focusActiveLDInput, 60);
+  }
+
+  function ldColToGridCol(col) { return col + 3; }
+
+  function renderLongDivisionStepper() {
+    var p = ldStepper.problem;
+    var grid = document.getElementById('ldGrid');
+    grid.innerHTML = '';
+    grid.style.setProperty('--ld-n', p.n);
+
+    // Row layout:
+    //   1: quotient
+    //   2: top line (over dividend)
+    //   3: dividend (with divisor + bracket on the left)
+    //   4 + sIdx*3: product row
+    //   5 + sIdx*3: subline row
+    //   6 + sIdx*3: subtraction + bring-down row
+
+    // Quotient inputs (only for cols startIdx..n-1)
+    for (var pos = p.startIdx; pos < p.n; pos++) {
+      var stepIdx = pos - p.startIdx;
+      var qInput = makeLdInput('q-' + stepIdx + '-0', p.steps[stepIdx].qDigit);
+      qInput.style.gridRow = 1;
+      qInput.style.gridColumn = ldColToGridCol(pos);
+      qInput.dataset.stage = 'q-' + stepIdx;
+      grid.appendChild(qInput);
+    }
+
+    // Top line (always visible)
+    var topLine = document.createElement('div');
+    topLine.className = 'ld-top-line';
+    topLine.style.gridRow = 2;
+    topLine.style.gridColumn = ldColToGridCol(0) + ' / span ' + p.n;
+    grid.appendChild(topLine);
+
+    // Divisor + bracket
+    var divisor = document.createElement('div');
+    divisor.className = 'ld-divisor';
+    divisor.textContent = p.divisor;
+    divisor.style.gridRow = 3;
+    divisor.style.gridColumn = 1;
+    grid.appendChild(divisor);
+
+    var bracket = document.createElement('div');
+    bracket.className = 'ld-bracket';
+    bracket.textContent = ')';
+    bracket.style.gridRow = 3;
+    bracket.style.gridColumn = 2;
+    grid.appendChild(bracket);
+
+    // Dividend digits (always visible)
+    for (var i = 0; i < p.n; i++) {
+      var d = document.createElement('div');
+      d.className = 'ld-digit ld-dividend-digit';
+      d.textContent = p.digits[i];
+      d.style.gridRow = 3;
+      d.style.gridColumn = ldColToGridCol(i);
+      grid.appendChild(d);
+    }
+
+    // Step rows
+    for (var sIdx = 0; sIdx < p.steps.length; sIdx++) {
+      var step = p.steps[sIdx];
+      var prodRow = 4 + sIdx * 3;
+      var subLineRow = prodRow + 1;
+      var subRow = prodRow + 2;
+
+      // Product inputs (1 or 2 inputs, one per digit column)
+      for (var pi = 0; pi < step.productDigits.length; pi++) {
+        var pInput = makeLdInput('p-' + sIdx + '-' + pi, step.productDigits[pi]);
+        pInput.style.gridRow = prodRow;
+        pInput.style.gridColumn = ldColToGridCol(step.productStartCol + pi);
+        pInput.dataset.stage = 'p-' + sIdx;
+        grid.appendChild(pInput);
+      }
+
+      // Subtraction line (under the product, spans product columns)
+      var subline = document.createElement('div');
+      subline.className = 'ld-subline ld-reveal';
+      subline.style.gridRow = subLineRow;
+      subline.style.gridColumn = ldColToGridCol(step.productStartCol) + ' / span ' + step.productDigits.length;
+      subline.dataset.stage = 's-' + sIdx;
+      grid.appendChild(subline);
+
+      // Subtraction inputs (typically 1 input since sub < divisor < 10)
+      for (var si = 0; si < step.subDigits.length; si++) {
+        var sInput = makeLdInput('s-' + sIdx + '-' + si, step.subDigits[si]);
+        sInput.style.gridRow = subRow;
+        sInput.style.gridColumn = ldColToGridCol(step.subStartCol + si);
+        sInput.dataset.stage = 's-' + sIdx;
+        grid.appendChild(sInput);
+      }
+
+      // Bring-down digit (sits in the same row as the subtraction, one column to the right)
+      if (step.bringDownDigit !== null) {
+        var bd = document.createElement('div');
+        bd.className = 'ld-digit ld-bring-down ld-reveal';
+        bd.textContent = step.bringDownDigit;
+        bd.style.gridRow = subRow;
+        bd.style.gridColumn = ldColToGridCol(step.bringDownCol);
+        bd.dataset.stage = 'b-' + sIdx;
+        grid.appendChild(bd);
+      }
+    }
+
+    applyLDStepperState();
+  }
+
+  function makeLdInput(key, expected) {
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.maxLength = 1;
+    input.className = 'ld-input ld-reveal';
+    input.dataset.ldKey = key;
+    input.dataset.expected = String(expected);
+    input.addEventListener('input', handleLdInput);
+    input.addEventListener('keydown', handleLdKeydown);
+    return input;
+  }
+
+  function parseLDKey(key) {
+    var parts = key.split('-');
+    return {
+      type: parts[0],
+      stepIdx: parseInt(parts[1], 10),
+      digitIdx: parts.length > 2 ? parseInt(parts[2], 10) : 0
+    };
+  }
+
+  function getLDInputStatus(kp) {
+    if (kp.stepIdx < ldStepper.currentStep) return 'completed';
+    if (kp.stepIdx > ldStepper.currentStep) return 'locked';
+    var sub = ldStepper.subStep;
+    if (kp.type === 'q') return sub === 'q' ? 'active' : 'completed';
+    if (kp.type === 'p') {
+      if (sub === 'q') return 'locked';
+      if (sub === 'p') return 'active';
+      return 'completed';
+    }
+    if (kp.type === 's') {
+      if (sub === 'q' || sub === 'p') return 'locked';
+      if (sub === 's') return 'active';
+      return 'completed';
+    }
+    return 'locked';
+  }
+
+  function computeLDRevealedStages() {
+    var stages = {};
+    for (var i = 0; i < ldStepper.currentStep; i++) {
+      stages['q-' + i] = true;
+      stages['p-' + i] = true;
+      stages['s-' + i] = true;
+      stages['b-' + i] = true;
+    }
+    var ci = ldStepper.currentStep;
+    if (!ldStepper.problem) return stages;
+    if (ci < ldStepper.problem.steps.length) {
+      stages['q-' + ci] = true;
+      if (ldStepper.subStep === 'p' || ldStepper.subStep === 's' || ldStepper.subStep === 'done') {
+        stages['p-' + ci] = true;
+      }
+      if (ldStepper.subStep === 's' || ldStepper.subStep === 'done') {
+        stages['s-' + ci] = true;
+      }
+    }
+    return stages;
+  }
+
+  function applyLDStepperState() {
+    var grid = document.getElementById('ldGrid');
+    if (!grid) return;
+    var allInputs = grid.querySelectorAll('.ld-input');
+    allInputs.forEach(function(input) {
+      var kp = parseLDKey(input.dataset.ldKey);
+      var status = getLDInputStatus(kp);
+      input.classList.remove('active', 'locked', 'incorrect');
+      if (status === 'completed') {
+        input.value = input.dataset.expected;
+        input.readOnly = true;
+        input.tabIndex = -1;
+        input.classList.add('correct');
+      } else if (status === 'active') {
+        input.classList.remove('correct');
+        input.classList.add('active');
+        input.readOnly = false;
+        input.tabIndex = 0;
+      } else {
+        input.classList.remove('correct');
+        input.classList.add('locked');
+        input.readOnly = true;
+        input.tabIndex = -1;
+        input.value = '';
+      }
+    });
+
+    var revealed = computeLDRevealedStages();
+    grid.querySelectorAll('.ld-reveal').forEach(function(el) {
+      var stage = el.dataset.stage;
+      if (stage && revealed[stage]) {
+        el.classList.add('revealed');
+      } else {
+        el.classList.remove('revealed');
+      }
+    });
+  }
+
+  function handleLdInput(e) {
+    var input = e.target;
+    if (input.readOnly) return;
+    var val = input.value.replace(/[^0-9]/g, '');
+    if (val.length > 1) val = val.slice(-1);
+    input.value = val;
+    if (val === '') return;
+
+    if (val === input.dataset.expected) {
+      input.classList.remove('incorrect', 'active');
+      input.classList.add('correct');
+      input.readOnly = true;
+      input.tabIndex = -1;
+      playTone(880, 0.06, 'sine');
+      advanceAfterCorrect(input);
+    } else {
+      input.classList.remove('correct');
+      input.classList.add('incorrect');
+      playTone(220, 0.1, 'triangle');
+      setTimeout(function() {
+        if (input.classList.contains('incorrect')) {
+          input.value = '';
+          input.classList.remove('incorrect');
+          input.focus();
+        }
+      }, 700);
+    }
+  }
+
+  function handleLdKeydown(e) {
+    if (e.key === 'Backspace' && e.target.value === '') {
+      var kp = parseLDKey(e.target.dataset.ldKey);
+      if (kp.type === 'p' && kp.digitIdx > 0) {
+        var prev = document.querySelector('[data-ld-key="p-' + kp.stepIdx + '-' + (kp.digitIdx - 1) + '"]');
+        if (prev && !prev.readOnly) {
+          e.preventDefault();
+          prev.focus();
+        }
+      }
+    }
+  }
+
+  function advanceAfterCorrect(input) {
+    var kp = parseLDKey(input.dataset.ldKey);
+    var sIdx = ldStepper.currentStep;
+    var step = ldStepper.problem.steps[sIdx];
+
+    if (kp.type === 'q') {
+      ldStepper.subStep = 'p';
+      applyLDStepperState();
+      setLDInstruction();
+      setTimeout(focusActiveLDInput, 250);
+      return;
+    }
+
+    if (kp.type === 'p') {
+      var allP = document.querySelectorAll('[data-ld-key^="p-' + sIdx + '-"]');
+      var allPCorrect = true;
+      allP.forEach(function(el) {
+        if (el.value !== el.dataset.expected) allPCorrect = false;
+      });
+      if (allPCorrect) {
+        ldStepper.subStep = 's';
+        applyLDStepperState();
+        setLDInstruction();
+        setTimeout(focusActiveLDInput, 250);
+      } else {
+        var nextIdx = kp.digitIdx + 1;
+        var nextP = document.querySelector('[data-ld-key="p-' + sIdx + '-' + nextIdx + '"]');
+        if (nextP) nextP.focus();
+      }
+      return;
+    }
+
+    if (kp.type === 's') {
+      var allS = document.querySelectorAll('[data-ld-key^="s-' + sIdx + '-"]');
+      var allSCorrect = true;
+      allS.forEach(function(el) {
+        if (el.value !== el.dataset.expected) allSCorrect = false;
+      });
+      if (!allSCorrect) {
+        var nextSIdx = kp.digitIdx + 1;
+        var nextS = document.querySelector('[data-ld-key="s-' + sIdx + '-' + nextSIdx + '"]');
+        if (nextS) nextS.focus();
+        return;
+      }
+
+      // Step finished. If a digit needs to come down, animate it.
+      if (step.bringDownDigit !== null) {
+        var bdEl = document.querySelector('[data-stage="b-' + sIdx + '"]');
+        if (bdEl) {
+          bdEl.classList.add('revealed', 'bringing-down');
+          setTimeout(function() { bdEl.classList.remove('bringing-down'); }, 750);
+        }
+        playTone(660, 0.1, 'sine');
+        setTimeout(function() {
+          ldStepper.currentStep += 1;
+          ldStepper.subStep = 'q';
+          applyLDStepperState();
+          setLDInstruction();
+          setTimeout(focusActiveLDInput, 200);
+        }, 700);
+      } else {
+        ldStepper.subStep = 'done';
+        ldStepper.done = true;
+        applyLDStepperState();
+        celebrateLongDivision();
+      }
+    }
+  }
+
+  function focusActiveLDInput() {
+    var grid = document.getElementById('ldGrid');
+    if (!grid) return;
+    var firstActive = grid.querySelector('.ld-input.active');
+    if (firstActive) firstActive.focus();
+  }
+
+  function setLDInstruction() {
+    var el = document.getElementById('ldInstruction');
+    if (!el) return;
+    if (!ldStepper.problem) {
+      el.textContent = 'Press "New problem" to begin.';
+      return;
+    }
+    if (ldStepper.done) {
+      el.innerHTML = '🎉 You completed the long division!';
+      return;
+    }
+    var step = ldStepper.problem.steps[ldStepper.currentStep];
+    var divisor = ldStepper.problem.divisor;
+    var stepNum = ldStepper.currentStep + 1;
+    if (ldStepper.subStep === 'q') {
+      el.innerHTML = '<strong>Step ' + stepNum + 'a — Divide:</strong> How many times does <strong>' + divisor +
+                     '</strong> go into <strong>' + step.currentValue + '</strong>?';
+    } else if (ldStepper.subStep === 'p') {
+      el.innerHTML = '<strong>Step ' + stepNum + 'b — Multiply:</strong> ' +
+                     step.qDigit + ' × ' + divisor + ' = ?';
+    } else if (ldStepper.subStep === 's') {
+      el.innerHTML = '<strong>Step ' + stepNum + 'c — Subtract:</strong> ' +
+                     step.currentValue + ' − ' + step.product + ' = ?' +
+                     (step.bringDownDigit !== null
+                        ? ' <span style="color: var(--text-tertiary);">(then bring down ' + step.bringDownDigit + ')</span>'
+                        : '');
+    }
+  }
+
+  function ldShowHint() {
+    if (!ldStepper.problem || ldStepper.done) return;
+    var step = ldStepper.problem.steps[ldStepper.currentStep];
+    var divisor = ldStepper.problem.divisor;
+    var msg = '';
+    if (ldStepper.subStep === 'q') {
+      msg = step.qDigit + ' × ' + divisor + ' = ' + step.product +
+            ' (and ' + (step.qDigit + 1) + ' × ' + divisor + ' would be too big).';
+    } else if (ldStepper.subStep === 'p') {
+      msg = step.qDigit + ' × ' + divisor + ' = ' + step.product + '.';
+    } else if (ldStepper.subStep === 's') {
+      msg = step.currentValue + ' − ' + step.product + ' = ' + step.sub + '.';
+    }
+    showToast('💡', 'Hint', msg);
+  }
+
+  function ldRevealAnswer() {
+    if (!ldStepper.problem) return;
+    var p = ldStepper.problem;
+    var grid = document.getElementById('ldGrid');
+    grid.querySelectorAll('.ld-input').forEach(function(input) {
+      input.value = input.dataset.expected;
+      input.readOnly = true;
+      input.tabIndex = -1;
+      input.classList.remove('active', 'locked', 'incorrect');
+      input.classList.add('correct');
+    });
+    grid.querySelectorAll('.ld-reveal').forEach(function(el) {
+      el.classList.add('revealed');
+    });
+    ldStepper.currentStep = p.steps.length;
+    ldStepper.subStep = 'done';
+    ldStepper.done = true;
+    setLDInstruction();
+    showLDFinalBanner();
+  }
+
+  function celebrateLongDivision() {
+    setLDInstruction();
+    showLDFinalBanner();
+    launchConfetti(40);
+    playTone(880, 0.12, 'sine');
+    setTimeout(function() { playTone(1320, 0.1, 'sine'); }, 130);
+  }
+
+  function showLDFinalBanner() {
+    var p = ldStepper.problem;
+    var banner = document.getElementById('ldFinalBanner');
+    banner.innerHTML =
+      '<div style="font-size: 1.4rem; margin-bottom: 4px;">🎉 Solved!</div>' +
+      '<strong>' + p.dividend + ' ÷ ' + p.divisor + ' = ' + p.quotient + '</strong>' +
+      ' remainder <strong>' + p.finalRemainder + '</strong>' +
+      (p.finalRemainder === 0 ? ' (divides evenly)' : '') +
+      '<br><span style="color: var(--text-secondary); font-size: 0.95rem;">Check: ' +
+      p.divisor + ' × ' + p.quotient + ' + ' + p.finalRemainder + ' = ' + p.dividend + '</span>';
+    banner.classList.add('show');
+  }
+
+  /* =========================================================
      KEYBOARD SHORTCUTS
      ========================================================= */
   function setupKeyboard() {
@@ -3471,6 +4168,7 @@
 
     setupKeyboard();
     generateLongDivisionProblem();
+    generateLongDivisionStepper();
   }
 
   // Run init when DOM is ready
