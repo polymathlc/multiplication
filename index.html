@@ -838,6 +838,113 @@
     width: 0%;
   }
 
+  /* Question-card extras: per-question timer chip + "tricky fact" badge */
+  .question-time-chip {
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+    background: var(--bg-tertiary);
+    color: var(--text-tertiary);
+    border-radius: var(--radius-full);
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    transition: background 0.2s, color 0.2s;
+    pointer-events: none;
+  }
+  .question-time-chip.slow {
+    background: var(--warn-bg);
+    color: var(--warn);
+  }
+  .question-tricky-badge {
+    position: absolute;
+    top: var(--space-md);
+    left: var(--space-md);
+    background: var(--coral-bg);
+    color: var(--coral-base);
+    border-radius: var(--radius-full);
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .time-tag {
+    display: inline-block;
+    background: var(--bg-tertiary);
+    color: var(--text-tertiary);
+    border-radius: var(--radius-full);
+    padding: 2px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-left: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .time-tag.fast {
+    background: var(--accent-bg);
+    color: var(--accent-deeper);
+  }
+  .time-tag.slow {
+    background: var(--warn-bg);
+    color: var(--warn);
+  }
+
+  /* Tricky-facts panel on setup screen */
+  .tricky-facts-panel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  .tricky-facts-panel.hidden { display: none; }
+  .tricky-facts-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+  .tricky-facts-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tricky-facts-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .tricky-fact-chip {
+    background: var(--bg-primary);
+    border: 1.5px solid var(--coral-light);
+    color: var(--text-primary);
+    border-radius: var(--radius-full);
+    padding: 6px 14px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  .tricky-fact-chip:hover {
+    border-color: var(--coral-base);
+    background: var(--coral-bg);
+    transform: translateY(-1px);
+  }
+  .tricky-fact-chip .tricky-fact-meta {
+    color: var(--text-tertiary);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
   .question-card {
     background: var(--bg-primary);
     border: 1px solid var(--border-subtle);
@@ -1634,6 +1741,19 @@
       </div>
     </div>
 
+    <!-- Tricky-facts memory panel: facts the student got wrong or answered slowly -->
+    <div class="tricky-facts-panel hidden" id="trickyFactsPanel">
+      <div class="tricky-facts-header">
+        <div class="tricky-facts-title">🎯 Facts to focus on
+          <span style="font-weight: 400; color: var(--text-tertiary); font-size: 0.85rem;">
+            — these will appear more often in your sessions
+          </span>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="practiceTrickyFacts()">Practice these</button>
+      </div>
+      <div class="tricky-facts-list" id="trickyFactsList"></div>
+    </div>
+
     <!-- Step 1: Times tables selection -->
     <div class="section-block">
       <div class="section-heading">Step 1 — Choose your times tables</div>
@@ -1824,6 +1944,8 @@
     </div>
 
     <div class="question-card">
+      <div class="question-time-chip" id="questionTimer" aria-label="Time on this question">0.0s</div>
+      <div class="question-tricky-badge" id="questionTrickyBadge" style="display:none;" title="You've struggled with this fact before">🎯 Tricky one</div>
       <div class="question-meta" id="questionMeta">From the 7 times table</div>
       <div class="question-equation" id="questionEquation">7 × 8 = <span class="qmark">?</span></div>
 
@@ -2004,8 +2126,16 @@
     perTableCorrect: {}, // {2: 12, 3: 5, ...}
     perTableAttempted: {},
     achievementsEarned: [], // ids of earned achievements
-    soundOn: true
+    soundOn: true,
+    // Per-fact memory keyed by canonical "minxmax" e.g. "7x8"
+    // Each entry: { attempts, correct, wrong, totalTimeMs, slowCount, lastWrongAt, hintCount }
+    factStats: {}
   };
+
+  // Above this answer time we count the fact as "slow" for prioritization
+  var SLOW_THRESHOLD_MS = 6000;
+  // Below this is considered "fast" for praise feedback
+  var FAST_THRESHOLD_MS = 2500;
 
   var save = loadSave();
 
@@ -2026,6 +2156,9 @@
     timerStart: 0,
     timerEnd: 0,
     timerInterval: null,
+    // Per-question timing
+    questionStartTime: 0,
+    questionTimerInterval: null,
     speedDrillTimeLeft: 60,
     answeredCurrent: false,
     hintShown: false,
@@ -2072,6 +2205,7 @@
       merged.perTableCorrect    = Object.assign({}, parsed.perTableCorrect    || {});
       merged.perTableAttempted  = Object.assign({}, parsed.perTableAttempted  || {});
       merged.achievementsEarned = (parsed.achievementsEarned || []).slice();
+      merged.factStats          = Object.assign({}, parsed.factStats || {});
       return merged;
     } catch (e) {
       return Object.assign({}, DEFAULT_SAVE);
@@ -2292,6 +2426,172 @@
     return pool;
   }
 
+  /* =========================================================
+     PER-FACT MEMORY (mistakes, timing, prioritization)
+     ========================================================= */
+  function getFactKey(a, b) {
+    var lo = Math.min(a, b), hi = Math.max(a, b);
+    return lo + 'x' + hi;
+  }
+
+  function getFactStat(a, b) {
+    var key = getFactKey(a, b);
+    return save.factStats[key] || null;
+  }
+
+  function recordFactResult(a, b, isCorrect, timeMs, hintUsed) {
+    var key = getFactKey(a, b);
+    var stat = save.factStats[key] || {
+      attempts: 0, correct: 0, wrong: 0,
+      totalTimeMs: 0, slowCount: 0,
+      lastWrongAt: 0, hintCount: 0
+    };
+    stat.attempts += 1;
+    if (isCorrect) {
+      stat.correct += 1;
+    } else {
+      stat.wrong += 1;
+      stat.lastWrongAt = Date.now();
+    }
+    if (typeof timeMs === 'number' && timeMs > 0) {
+      stat.totalTimeMs += timeMs;
+      if (timeMs > SLOW_THRESHOLD_MS) stat.slowCount += 1;
+    }
+    if (hintUsed) stat.hintCount += 1;
+    save.factStats[key] = stat;
+  }
+
+  // Returns a weight used by the prioritized question generator. Higher = picked more often.
+  function getFactPriority(a, b) {
+    var stat = getFactStat(a, b);
+    if (!stat || stat.attempts === 0) return 1.8; // unseen → above baseline (worth practising)
+    var wrongRate = stat.wrong / stat.attempts;
+    var slowRate  = stat.slowCount / stat.attempts;
+    var avgTimeMs = stat.totalTimeMs / Math.max(stat.attempts, 1);
+    // Boost facts the student got wrong recently (within 7 days)
+    var recentBoost = (stat.lastWrongAt && (Date.now() - stat.lastWrongAt) < 7 * 24 * 3600 * 1000) ? 1 : 0;
+    // Mastered facts (5+ attempts, <10% wrong, fast) get a lower weight so we don't over-drill them
+    var mastered = (stat.attempts >= 5 && wrongRate < 0.1 && avgTimeMs < 3000);
+    var base = mastered ? 0.4 : 1;
+    return base * (1 + wrongRate * 4 + slowRate * 1.5 + recentBoost);
+  }
+
+  // Pick weighted random index from `weights`
+  function pickWeightedIndex(weights, total) {
+    var r = Math.random() * total;
+    var acc = 0;
+    for (var i = 0; i < weights.length; i++) {
+      acc += weights[i];
+      if (r <= acc) return i;
+    }
+    return weights.length - 1;
+  }
+
+  function refreshTrickyFactsPanel() {
+    var panel = document.getElementById('trickyFactsPanel');
+    var list  = document.getElementById('trickyFactsList');
+    if (!panel || !list) return;
+    var top = getTopTrickyFacts(8);
+    if (top.length === 0) {
+      panel.classList.add('hidden');
+      return;
+    }
+    panel.classList.remove('hidden');
+    list.innerHTML = '';
+    top.forEach(function(item) {
+      var stat = item.stat;
+      var avgSec = stat.attempts > 0 ? (stat.totalTimeMs / stat.attempts / 1000) : 0;
+      var meta = '';
+      if (stat.wrong > 0) meta = stat.wrong + '× wrong';
+      else if (stat.slowCount > 0) meta = 'avg ' + avgSec.toFixed(1) + 's';
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'tricky-fact-chip';
+      chip.title = 'Wrong: ' + stat.wrong + '  ·  Slow answers: ' + stat.slowCount +
+                   '  ·  Avg time: ' + avgSec.toFixed(1) + 's';
+      chip.innerHTML = item.a + ' × ' + item.b +
+                       '<span class="tricky-fact-meta">' + meta + '</span>';
+      // Clicking a chip selects the relevant tables so it's likely to appear in the next session
+      chip.addEventListener('click', (function(a, b) {
+        return function() {
+          var tables = session.selectedTables.slice();
+          if (tables.indexOf(a) === -1) tables.push(a);
+          if (tables.indexOf(b) === -1) tables.push(b);
+          setSelectedTables(tables);
+          showToast('🎯', 'Added to selection', a + ' and ' + b + ' times tables.');
+        };
+      })(item.a, item.b));
+      list.appendChild(chip);
+    });
+  }
+
+  // "Practice these" button: build a session whose pool is exactly the tricky facts.
+  function practiceTrickyFacts() {
+    var top = getTopTrickyFacts(20);
+    if (top.length === 0) return;
+    // Build question objects directly from the tricky facts and bypass the pool
+    var qs = top.map(function(item) {
+      var style = session.questionStyle;
+      if (style === 'mixed') style = Math.random() < 0.5 ? 'standard' : 'missing';
+      return {
+        a: item.a,
+        b: item.b,
+        ans: item.a * item.b,
+        style: style,
+        given: null,
+        correct: null,
+        hintUsed: false,
+        timeMs: 0
+      };
+    });
+    // Shuffle and pad to the chosen question count
+    qs = shuffleArray(qs);
+    while (qs.length < session.questionCount) {
+      qs = qs.concat(shuffleArray(qs).slice(0, Math.min(qs.length, session.questionCount - qs.length)));
+    }
+    qs = qs.slice(0, session.questionCount);
+
+    // Reset session state, then enter the practice screen using these specific questions
+    session.questions     = qs;
+    session.currentIndex  = 0;
+    session.correct       = 0;
+    session.streak        = 0;
+    session.bestStreak    = 0;
+    session.mistakes      = [];
+    session.perTable      = {};
+    session.timerStart    = Date.now();
+    session.sessionAchievements = [];
+    session.answeredCurrent = false;
+    session.hintShown = false;
+    session.mode = 'practice'; // friendly mode for focused fact-fixing
+
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('resultsScreen').classList.add('hidden');
+    document.getElementById('practiceScreen').classList.remove('hidden');
+    document.getElementById('topTimerWrap').style.display = 'none';
+    stopTimer();
+    renderQuestion();
+    showToast('🎯', 'Focused practice', qs.length + ' tricky facts loaded.');
+  }
+
+  // Returns up to N facts the student needs the most work on, sorted by priority desc.
+  function getTopTrickyFacts(limit) {
+    var entries = [];
+    for (var key in save.factStats) {
+      if (!Object.prototype.hasOwnProperty.call(save.factStats, key)) continue;
+      var parts = key.split('x');
+      var a = parseInt(parts[0], 10), b = parseInt(parts[1], 10);
+      var stat = save.factStats[key];
+      if (!stat || stat.attempts < 1) continue;
+      var priority = getFactPriority(a, b);
+      // Only show truly tricky ones (got something wrong, slow, or never above the baseline)
+      if (stat.wrong === 0 && stat.slowCount === 0) continue;
+      entries.push({ a: a, b: b, stat: stat, priority: priority });
+    }
+    entries.sort(function(x, y) { return y.priority - x.priority; });
+    return entries.slice(0, limit || 6);
+  }
+
   function shuffleArray(arr) {
     var out = arr.slice();
     for (var i = out.length - 1; i > 0; i--) {
@@ -2305,32 +2605,42 @@
 
   function generateQuestions() {
     var pool = buildQuestionPool(session.selectedTables);
-    var shuffled = shuffleArray(pool);
     var count;
     if (session.mode === 'speed') {
-      // Generate enough for any reasonable speed run. We'll cycle if needed.
-      count = Math.max(120, shuffled.length * 2);
+      count = Math.max(120, pool.length * 2);
     } else {
       count = session.questionCount;
     }
 
-    var qs = [];
-    var idx = 0;
-    while (qs.length < count) {
-      if (idx >= shuffled.length) {
-        shuffled = shuffleArray(pool); // reshuffle when pool exhausted
-        idx = 0;
-      }
-      var item = shuffled[idx++];
-      var a = item.a;
-      var b = item.b;
-      var ans = a * b;
+    // Pre-compute priority weight for every pair in the pool
+    var weights = pool.map(function(p) { return getFactPriority(p.a, p.b); });
+    var totalWeight = 0;
+    for (var w = 0; w < weights.length; w++) totalWeight += weights[w];
 
-      // Decide question style for this question
-      var style = session.questionStyle;
-      if (style === 'mixed') {
-        style = Math.random() < 0.5 ? 'standard' : 'missing';
+    var qs = [];
+    var lastKey = null;
+    var repeatGuard = 0;
+    while (qs.length < count) {
+      var pickIdx;
+      if (totalWeight > 0) {
+        pickIdx = pickWeightedIndex(weights, totalWeight);
+      } else {
+        pickIdx = Math.floor(Math.random() * pool.length);
       }
+      var item = pool[pickIdx];
+      var thisKey = getFactKey(item.a, item.b);
+      // Avoid the same fact appearing twice in a row when there's variety available
+      if (thisKey === lastKey && pool.length > 2 && repeatGuard < 8) {
+        repeatGuard += 1;
+        continue;
+      }
+      repeatGuard = 0;
+      lastKey = thisKey;
+
+      var a = item.a, b = item.b, ans = a * b;
+      var style = session.questionStyle;
+      if (style === 'mixed') style = Math.random() < 0.5 ? 'standard' : 'missing';
+
       qs.push({
         a: a,
         b: b,
@@ -2338,7 +2648,9 @@
         style: style,
         given: null,
         correct: null,
-        hintUsed: false
+        hintUsed: false,
+        timeMs: 0,
+        priority: weights[pickIdx]
       });
     }
     return qs;
@@ -2427,6 +2739,35 @@
   }
 
   /* =========================================================
+     PER-QUESTION TIMER
+     ========================================================= */
+  function startQuestionTimer() {
+    stopQuestionTimer();
+    session.questionStartTime = Date.now();
+    var el = document.getElementById('questionTimer');
+    if (!el) return;
+    el.classList.remove('slow', 'fast');
+    el.textContent = '0.0s';
+    session.questionTimerInterval = setInterval(function() {
+      var ms = Date.now() - session.questionStartTime;
+      el.textContent = (ms / 1000).toFixed(1) + 's';
+      if (ms > SLOW_THRESHOLD_MS) el.classList.add('slow');
+    }, 100);
+  }
+
+  function stopQuestionTimer() {
+    if (session.questionTimerInterval) {
+      clearInterval(session.questionTimerInterval);
+      session.questionTimerInterval = null;
+    }
+  }
+
+  function getElapsedQuestionMs() {
+    if (!session.questionStartTime) return 0;
+    return Date.now() - session.questionStartTime;
+  }
+
+  /* =========================================================
      QUESTION RENDERING
      ========================================================= */
   function renderQuestion() {
@@ -2470,6 +2811,14 @@
       meta.textContent = 'Find the missing number — ' + q.a + ' times table';
     }
 
+    // Show "tricky fact" badge when this fact has been wrong recently or slow
+    var trickyBadge = document.getElementById('questionTrickyBadge');
+    if (trickyBadge) {
+      var stat = getFactStat(q.a, q.b);
+      var isTricky = !!(stat && (stat.wrong > 0 || stat.slowCount > 0));
+      trickyBadge.style.display = isTricky ? '' : 'none';
+    }
+
     // Reset feedback
     var fb = document.getElementById('feedbackMsg');
     fb.classList.remove('visible', 'correct', 'incorrect', 'hint');
@@ -2506,6 +2855,9 @@
       mcGrid.classList.remove('hidden');
       buildMultipleChoice(q);
     }
+
+    // Start the per-question stopwatch
+    startQuestionTimer();
   }
 
   function buildMultipleChoice(q) {
@@ -2600,9 +2952,17 @@
     var correctAns = q.style === 'standard' ? q.ans : q.b;
     var isCorrect = given === correctAns;
 
+    // Capture how long this question took, then stop the live ticker
+    var timeMs = getElapsedQuestionMs();
+    q.timeMs = timeMs;
+    stopQuestionTimer();
+
     q.given = given;
     q.correct = isCorrect;
     session.answeredCurrent = true;
+
+    // Persist per-fact memory (mistakes, timing, slow-count, recency)
+    recordFactResult(q.a, q.b, isCorrect, timeMs, q.hintUsed);
 
     // Track per-table stats — track BOTH factors as belonging to those tables for fairness
     bumpTableStat(q.a, isCorrect);
@@ -2693,6 +3053,19 @@
     if (isCorrect) session.perTable[table].correct += 1;
   }
 
+  function formatSeconds(ms) {
+    return (ms / 1000).toFixed(1) + 's';
+  }
+
+  function buildTimeTag(ms) {
+    if (!ms || ms <= 0) return '';
+    var label = formatSeconds(ms);
+    var cls = '';
+    if (ms < FAST_THRESHOLD_MS) cls = 'fast';
+    else if (ms > SLOW_THRESHOLD_MS) cls = 'slow';
+    return ' <span class="time-tag ' + cls + '">⏱ ' + label + '</span>';
+  }
+
   function showCorrectFeedback(q) {
     var fb = document.getElementById('feedbackMsg');
     fb.classList.remove('hint', 'incorrect');
@@ -2706,8 +3079,10 @@
       'You got it!'
     ];
     var msg = praises[Math.floor(Math.random() * praises.length)];
+    if (q.timeMs && q.timeMs < FAST_THRESHOLD_MS) msg = 'Lightning fast! ⚡';
+    else if (q.timeMs && q.timeMs > SLOW_THRESHOLD_MS) msg = 'Got it — let\'s aim a bit faster next time.';
     if (session.streak >= 3) msg += ' (' + session.streak + ' in a row 🔥)';
-    fb.innerHTML = '<strong>' + msg + '</strong>';
+    fb.innerHTML = '<strong>' + msg + '</strong>' + buildTimeTag(q.timeMs);
     requestAnimationFrame(function() { fb.classList.add('visible'); });
   }
 
@@ -2722,7 +3097,8 @@
       equationStr = q.a + ' × ' + correctAns + ' = ' + q.ans;
     }
     fb.innerHTML =
-      '<strong>Not quite.</strong> The answer is <strong>' + equationStr + '</strong>.';
+      '<strong>Not quite.</strong> The answer is <strong>' + equationStr + '</strong>.' +
+      buildTimeTag(q.timeMs);
     requestAnimationFrame(function() { fb.classList.add('visible'); });
   }
 
@@ -2875,12 +3251,18 @@
     var q = session.questions[session.currentIndex];
     var correctAns = q.style === 'standard' ? q.ans : q.b;
 
+    var timeMs = getElapsedQuestionMs();
+    q.timeMs = timeMs;
+    stopQuestionTimer();
+
     session.streak = 0;
     session.mistakes.push({
       a: q.a, b: q.b, ans: q.ans, style: q.style,
       given: '—',
       correctAnswer: correctAns
     });
+    // Skip counts as a wrong answer in the per-fact memory so it gets prioritized later
+    recordFactResult(q.a, q.b, false, timeMs, q.hintUsed);
     bumpTableStat(q.a, false);
     if (q.b !== q.a) bumpTableStat(q.b, false);
     save.lifetimeAttempted += 1;
@@ -2921,6 +3303,7 @@
 
   function endSession() {
     stopTimer();
+    stopQuestionTimer();
     save.lifetimeSessions += 1;
 
     // Achievements
@@ -3222,9 +3605,11 @@
     save.perTableCorrect = {};
     save.perTableAttempted = {};
     save.achievementsEarned = [];
+    save.factStats = {};
     persistSave();
     buildTableGrid();
     refreshLifetimeStats();
+    refreshTrickyFactsPanel();
     showToast('🗑️', 'Stats Reset', 'Starting fresh.');
   }
 
@@ -3236,6 +3621,7 @@
     buildTableGrid();              // refresh mastery dots
     setSelectedTables(session.selectedTables); // re-apply selections after rebuild
     refreshLifetimeStats();
+    refreshTrickyFactsPanel();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -4169,6 +4555,7 @@
     setupKeyboard();
     generateLongDivisionProblem();
     generateLongDivisionStepper();
+    refreshTrickyFactsPanel();
   }
 
   // Run init when DOM is ready
