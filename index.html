@@ -406,6 +406,85 @@
   .ld-bring-down.bringing-down {
     animation: ldBringDown 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
+
+  /* Bring-down arrow — traces a line from the dividend digit down to the bring-down spot */
+  .ld-bring-arrow-wrap {
+    position: relative;
+    pointer-events: none;
+    align-self: stretch;
+    justify-self: center;
+    width: 100%;
+    z-index: 1;
+  }
+  .ld-bring-arrow-wrap.ld-reveal {
+    /* Override .ld-reveal base: we don't want to fade the wrapper itself,
+       the inner SVG/arrowhead handle their own reveal animations */
+    opacity: 1;
+    transform: none;
+    transition: none;
+    pointer-events: none;
+  }
+  .ld-bring-arrow-svg {
+    position: absolute;
+    top: 36px;       /* clear the dividend digit */
+    bottom: 44px;    /* clear the bring-down digit, leave room for arrowhead */
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .ld-bring-arrow-line {
+    fill: none;
+    stroke: var(--accent-deeper);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    transition: stroke-dashoffset 0.6s ease;
+  }
+  .ld-bring-arrow-head {
+    position: absolute;
+    left: 50%;
+    bottom: 40px;    /* tip just above the bring-down digit */
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 10px solid var(--accent-deeper);
+    transform: translateX(-50%) translateY(-6px) scale(0.4);
+    opacity: 0;
+    transition: opacity 0.25s ease 0.45s,
+                transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s;
+  }
+  .ld-bring-arrow-label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) translateX(14px) scale(0.6);
+    background: var(--accent-bg);
+    color: var(--accent-deeper);
+    border-radius: var(--radius-full);
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease 0.55s,
+                transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s;
+  }
+  .ld-bring-arrow-wrap.revealed .ld-bring-arrow-line {
+    stroke-dashoffset: 0;
+  }
+  .ld-bring-arrow-wrap.revealed .ld-bring-arrow-head {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  .ld-bring-arrow-wrap.revealed .ld-bring-arrow-label {
+    opacity: 1;
+    transform: translate(-50%, -50%) translateX(14px) scale(1);
+  }
   @keyframes ldPulse {
     0%, 100% { box-shadow: 0 0 0 3px rgba(129, 199, 132, 0.25); }
     50%      { box-shadow: 0 0 0 6px rgba(129, 199, 132, 0.45); }
@@ -4168,6 +4247,39 @@
         bd.style.gridColumn = ldColToGridCol(step.bringDownCol);
         bd.dataset.stage = 'b-' + sIdx;
         grid.appendChild(bd);
+
+        // Bring-down arrow: an SVG line drawn from below the dividend digit
+        // down to just above the bring-down digit, with an arrowhead.
+        var arrowWrap = document.createElement('div');
+        arrowWrap.className = 'ld-bring-arrow-wrap ld-reveal';
+        arrowWrap.dataset.stage = 'arrow-' + sIdx;
+        arrowWrap.style.gridColumn = ldColToGridCol(step.bringDownCol);
+        arrowWrap.style.gridRow = '3 / ' + (subRow + 1);
+
+        var SVG_NS = 'http://www.w3.org/2000/svg';
+        var arrowSvg = document.createElementNS(SVG_NS, 'svg');
+        arrowSvg.setAttribute('class', 'ld-bring-arrow-svg');
+        arrowSvg.setAttribute('viewBox', '0 0 24 100');
+        arrowSvg.setAttribute('preserveAspectRatio', 'none');
+        arrowSvg.setAttribute('aria-hidden', 'true');
+
+        var arrowPath = document.createElementNS(SVG_NS, 'path');
+        arrowPath.setAttribute('class', 'ld-bring-arrow-line');
+        arrowPath.setAttribute('d', 'M12 4 L12 96');
+        arrowPath.setAttribute('pathLength', '100');
+        arrowSvg.appendChild(arrowPath);
+        arrowWrap.appendChild(arrowSvg);
+
+        var arrowHead = document.createElement('span');
+        arrowHead.className = 'ld-bring-arrow-head';
+        arrowWrap.appendChild(arrowHead);
+
+        var arrowLabel = document.createElement('span');
+        arrowLabel.className = 'ld-bring-arrow-label';
+        arrowLabel.textContent = 'bring down';
+        arrowWrap.appendChild(arrowLabel);
+
+        grid.appendChild(arrowWrap);
       }
     }
 
@@ -4221,6 +4333,7 @@
       stages['p-' + i] = true;
       stages['s-' + i] = true;
       stages['b-' + i] = true;
+      stages['arrow-' + i] = true;
     }
     var ci = ldStepper.currentStep;
     if (!ldStepper.problem) return stages;
@@ -4363,19 +4476,28 @@
 
       // Step finished. If a digit needs to come down, animate it.
       if (step.bringDownDigit !== null) {
+        // 1. Draw the bring-down arrow first so the student sees the path
+        var arrowEl = document.querySelector('[data-stage="arrow-' + sIdx + '"]');
+        if (arrowEl) arrowEl.classList.add('revealed');
+
+        // 2. After the line begins to draw, drop the digit down to the new row
         var bdEl = document.querySelector('[data-stage="b-' + sIdx + '"]');
-        if (bdEl) {
-          bdEl.classList.add('revealed', 'bringing-down');
-          setTimeout(function() { bdEl.classList.remove('bringing-down'); }, 750);
-        }
+        setTimeout(function() {
+          if (bdEl) {
+            bdEl.classList.add('revealed', 'bringing-down');
+            setTimeout(function() { bdEl.classList.remove('bringing-down'); }, 750);
+          }
+        }, 300);
+
         playTone(660, 0.1, 'sine');
+        // 3. Move to the next step once the arrow + digit have settled
         setTimeout(function() {
           ldStepper.currentStep += 1;
           ldStepper.subStep = 'q';
           applyLDStepperState();
           setLDInstruction();
           setTimeout(focusActiveLDInput, 200);
-        }, 700);
+        }, 1100);
       } else {
         ldStepper.subStep = 'done';
         ldStepper.done = true;
