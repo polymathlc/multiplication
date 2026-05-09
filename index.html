@@ -427,7 +427,7 @@
   .ld-bring-arrow-svg {
     position: absolute;
     top: 36px;       /* clear the dividend digit */
-    bottom: 44px;    /* clear the bring-down digit, leave room for arrowhead */
+    bottom: 12px;    /* leave room for the arrowhead above the bring-down digit */
     left: 0;
     right: 0;
     width: 100%;
@@ -446,7 +446,7 @@
   .ld-bring-arrow-head {
     position: absolute;
     left: 50%;
-    bottom: 40px;    /* tip just above the bring-down digit */
+    bottom: 2px;     /* tip sits just above the bring-down digit row */
     width: 0;
     height: 0;
     border-left: 7px solid transparent;
@@ -4254,7 +4254,9 @@
         arrowWrap.className = 'ld-bring-arrow-wrap ld-reveal';
         arrowWrap.dataset.stage = 'arrow-' + sIdx;
         arrowWrap.style.gridColumn = ldColToGridCol(step.bringDownCol);
-        arrowWrap.style.gridRow = '3 / ' + (subRow + 1);
+        // End above the bring-down digit row so the arrow doesn't extend
+        // into (and visually cut across) the digit being brought down.
+        arrowWrap.style.gridRow = '3 / ' + subRow;
 
         var SVG_NS = 'http://www.w3.org/2000/svg';
         var arrowSvg = document.createElementNS(SVG_NS, 'svg');
