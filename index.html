@@ -1489,6 +1489,197 @@
   .stagger-children > *:nth-child(6) { animation-delay: 0.30s; }
 
   /* =========================================================
+     16b. Worksheet Generator
+     ========================================================= */
+  .worksheet-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-lg);
+  }
+  .worksheet-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  @media (min-width: 720px) {
+    .worksheet-controls { grid-template-columns: repeat(2, 1fr); }
+  }
+  .worksheet-actions {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: var(--space-md);
+  }
+  #worksheetPrintArea {
+    margin-top: var(--space-lg);
+  }
+  .worksheet-page {
+    background: white;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-top: var(--space-md);
+    page-break-after: always;
+    break-after: page;
+  }
+  .worksheet-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+  .worksheet-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .worksheet-sub {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-md);
+  }
+  .worksheet-name-row {
+    display: flex;
+    gap: var(--space-lg);
+    font-size: 0.95rem;
+    margin-bottom: var(--space-md);
+    border-bottom: 1px solid var(--border-medium);
+    padding-bottom: var(--space-sm);
+  }
+  .worksheet-name-row > span {
+    flex: 1;
+  }
+  .worksheet-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 28px;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (min-width: 720px) {
+    .worksheet-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  }
+  .worksheet-q {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 8px 0;
+    font-size: 1.1rem;
+    border-bottom: 1px dotted var(--border-medium);
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .worksheet-q .qnum {
+    color: var(--text-tertiary);
+    font-weight: 600;
+    min-width: 26px;
+  }
+  .worksheet-q .qbody {
+    flex: 1;
+  }
+  .worksheet-blank {
+    display: inline-block;
+    min-width: 48px;
+    border-bottom: 2px solid var(--text-primary);
+    margin: 0 4px;
+    text-align: center;
+  }
+  .worksheet-answer-key {
+    background: var(--accent-bg);
+    border-color: var(--accent-light);
+  }
+  .worksheet-answer-key .worksheet-title { color: var(--accent-deeper); }
+  .worksheet-answer-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px 24px;
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (min-width: 720px) {
+    .worksheet-answer-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  .worksheet-answer-grid .ak {
+    padding: 4px 0;
+    border-bottom: 1px dotted var(--border-medium);
+  }
+  .worksheet-empty {
+    text-align: center;
+    color: var(--text-tertiary);
+    padding: var(--space-lg);
+    font-style: italic;
+  }
+  /* Long division layout (worksheet) */
+  .worksheet-ld {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    font-family: var(--font-roboto);
+    font-weight: 600;
+    font-size: 1.15rem;
+    padding: 8px 0 18px;
+    line-height: 1;
+  }
+  .worksheet-ld .ld-divisor {
+    padding-right: 8px;
+  }
+  .worksheet-ld .ld-bracket {
+    border-left: 2px solid var(--text-primary);
+    border-top: 2px solid var(--text-primary);
+    padding: 6px 14px 36px 10px;
+  }
+  /* Range picker */
+  .range-row {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .range-row input[type="number"] {
+    width: 70px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.95rem;
+  }
+  .qtype-chips .chip {
+    user-select: none;
+  }
+
+  /* Print mode for worksheet only: hide everything except worksheet */
+  body.printing-worksheet .polymath-header,
+  body.printing-worksheet #setupScreen,
+  body.printing-worksheet #longDivisionSection,
+  body.printing-worksheet #ldStepperSection,
+  body.printing-worksheet #practiceScreen,
+  body.printing-worksheet #flashcardsScreen,
+  body.printing-worksheet #resultsScreen,
+  body.printing-worksheet .worksheet-controls,
+  body.printing-worksheet .worksheet-actions,
+  body.printing-worksheet .section-heading.worksheet-heading {
+    display: none !important;
+  }
+  body.printing-worksheet #worksheetSection {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+  }
+  body.printing-worksheet #worksheetSection .worksheet-card {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+  body.printing-worksheet .worksheet-page {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* =========================================================
      17. Utility
      ========================================================= */
   .hidden { display: none !important; }
@@ -1993,6 +2184,68 @@
       </div>
 
       <div class="ld-final-banner" id="ldFinalBanner"></div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       WORKSHEET / QUESTION GENERATOR
+       ============================================ -->
+  <section id="worksheetSection" class="section-block">
+    <div class="section-heading worksheet-heading">Worksheet Generator — Print or Save as PDF</div>
+    <div class="worksheet-card">
+      <p class="page-subtitle" style="margin-bottom: var(--space-md); max-width: none;">
+        Build a printable worksheet. Pick the kinds of questions you want, set a count, then generate. Use
+        <strong>Print / Save as PDF</strong> to export.
+      </p>
+
+      <div class="worksheet-controls">
+
+        <div class="setting-group">
+          <div class="setting-label">Question Types (pick one or more)</div>
+          <div class="chip-row qtype-chips" id="worksheetTypeChips">
+            <button class="chip active" data-qtype="mult" onclick="toggleWorksheetType('mult')">Multiplication (a × b = ?)</button>
+            <button class="chip active" data-qtype="missing" onclick="toggleWorksheetType('missing')">Fill in the blank (4 × ? = 12)</button>
+            <button class="chip" data-qtype="div-no-rem" onclick="toggleWorksheetType('div-no-rem')">Long division — no remainder</button>
+            <button class="chip" data-qtype="div-rem" onclick="toggleWorksheetType('div-rem')">Long division — with remainder</button>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-label">Number of Questions</div>
+          <div class="chip-row" id="worksheetCountChips">
+            <button class="chip" data-ws-count="10" onclick="setWorksheetCount(10)">10</button>
+            <button class="chip active" data-ws-count="20" onclick="setWorksheetCount(20)">20</button>
+            <button class="chip" data-ws-count="30" onclick="setWorksheetCount(30)">30</button>
+            <button class="chip" data-ws-count="50" onclick="setWorksheetCount(50)">50</button>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-label">Times Tables Range (for × and missing-factor)</div>
+          <div class="range-row">
+            <label>From <input type="number" id="worksheetTableMin" min="1" max="12" value="2" /></label>
+            <label>To <input type="number" id="worksheetTableMax" min="1" max="12" value="12" /></label>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-label">Answer Key</div>
+          <div class="chip-row" id="worksheetAnswerKeyChips">
+            <button class="chip active" data-ws-key="yes" onclick="setWorksheetAnswerKey(true)">Include answer key</button>
+            <button class="chip" data-ws-key="no" onclick="setWorksheetAnswerKey(false)">No answer key</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="worksheet-actions">
+        <button class="btn btn-primary" onclick="generateWorksheet()">Generate worksheet</button>
+        <button class="btn btn-secondary" id="worksheetPrintBtn" onclick="printWorksheet()" disabled>Print / Save as PDF</button>
+      </div>
+
+      <div id="worksheetPrintArea">
+        <div class="worksheet-empty" id="worksheetEmpty">No worksheet yet — click "Generate worksheet" above.</div>
+      </div>
     </div>
   </section>
 
@@ -4680,6 +4933,215 @@
     generateLongDivisionProblem();
     generateLongDivisionStepper();
     refreshTrickyFactsPanel();
+    initWorksheetGenerator();
+  }
+
+  /* =========================================================
+     WORKSHEET GENERATOR
+     ========================================================= */
+  var worksheetState = {
+    types: { 'mult': true, 'missing': true, 'div-no-rem': false, 'div-rem': false },
+    count: 20,
+    includeAnswerKey: true,
+    questions: []
+  };
+
+  function initWorksheetGenerator() {
+    refreshWorksheetTypeChips();
+    refreshWorksheetCountChips();
+    refreshWorksheetAnswerKeyChips();
+  }
+
+  function toggleWorksheetType(t) {
+    var active = Object.keys(worksheetState.types).filter(function(k){ return worksheetState.types[k]; });
+    if (worksheetState.types[t] && active.length === 1) return; // keep at least one
+    worksheetState.types[t] = !worksheetState.types[t];
+    refreshWorksheetTypeChips();
+  }
+  function refreshWorksheetTypeChips() {
+    document.querySelectorAll('#worksheetTypeChips .chip').forEach(function(c) {
+      var k = c.getAttribute('data-qtype');
+      c.classList.toggle('active', !!worksheetState.types[k]);
+    });
+  }
+
+  function setWorksheetCount(n) {
+    worksheetState.count = n;
+    refreshWorksheetCountChips();
+  }
+  function refreshWorksheetCountChips() {
+    document.querySelectorAll('#worksheetCountChips .chip').forEach(function(c) {
+      c.classList.toggle('active', parseInt(c.getAttribute('data-ws-count'), 10) === worksheetState.count);
+    });
+  }
+
+  function setWorksheetAnswerKey(yes) {
+    worksheetState.includeAnswerKey = !!yes;
+    refreshWorksheetAnswerKeyChips();
+  }
+  function refreshWorksheetAnswerKeyChips() {
+    document.querySelectorAll('#worksheetAnswerKeyChips .chip').forEach(function(c) {
+      var key = c.getAttribute('data-ws-key') === 'yes';
+      c.classList.toggle('active', key === worksheetState.includeAnswerKey);
+    });
+  }
+
+  function getWorksheetTableRange() {
+    var lo = parseInt(document.getElementById('worksheetTableMin').value, 10);
+    var hi = parseInt(document.getElementById('worksheetTableMax').value, 10);
+    if (isNaN(lo) || lo < 1) lo = 1;
+    if (isNaN(hi) || hi > 12) hi = 12;
+    if (lo > hi) { var tmp = lo; lo = hi; hi = tmp; }
+    return { lo: lo, hi: hi };
+  }
+
+  function makeMultQuestion(range) {
+    var a = randomInt(range.lo, range.hi);
+    var b = randomInt(2, 12);
+    return {
+      type: 'mult',
+      a: a, b: b, ans: a * b,
+      render: function() { return a + ' × ' + b + ' = <span class="worksheet-blank"></span>'; },
+      answerText: function() { return a + ' × ' + b + ' = ' + (a * b); }
+    };
+  }
+
+  function makeMissingFactorQuestion(range) {
+    var a = randomInt(range.lo, range.hi);
+    var b = randomInt(2, 12);
+    var product = a * b;
+    var which = Math.random() < 0.5 ? 'a' : 'b';
+    var render, answerText;
+    if (which === 'a') {
+      render = '<span class="worksheet-blank"></span> × ' + b + ' = ' + product;
+      answerText = '? = ' + a + '  (so ' + a + ' × ' + b + ' = ' + product + ')';
+    } else {
+      render = a + ' × <span class="worksheet-blank"></span> = ' + product;
+      answerText = '? = ' + b + '  (so ' + a + ' × ' + b + ' = ' + product + ')';
+    }
+    return {
+      type: 'missing',
+      a: a, b: b, ans: which === 'a' ? a : b,
+      render: function() { return render; },
+      answerText: function() { return answerText; }
+    };
+  }
+
+  function makeLongDivisionQuestion(withRemainder) {
+    var dividend = 0, divisor = 0, quotient = 0, remainder = 0, tries = 0;
+    while (tries < 500) {
+      tries += 1;
+      divisor = randomInt(2, 9);
+      quotient = randomInt(12, 999);
+      remainder = withRemainder ? randomInt(1, divisor - 1 || 1) : 0;
+      dividend = divisor * quotient + remainder;
+      if (dividend >= 100 && dividend <= 999 && remainder < divisor) break;
+    }
+    var typeKey = withRemainder ? 'div-rem' : 'div-no-rem';
+    return {
+      type: typeKey,
+      dividend: dividend, divisor: divisor, quotient: quotient, remainder: remainder,
+      render: function() {
+        return '<div class="worksheet-ld">' +
+                 '<span class="ld-divisor">' + divisor + '</span>' +
+                 '<span class="ld-bracket">' + dividend + '</span>' +
+               '</div>';
+      },
+      answerText: function() {
+        if (remainder === 0) {
+          return dividend + ' ÷ ' + divisor + ' = ' + quotient;
+        }
+        return dividend + ' ÷ ' + divisor + ' = ' + quotient + ' r ' + remainder;
+      }
+    };
+  }
+
+  function generateWorksheet() {
+    var activeTypes = Object.keys(worksheetState.types).filter(function(k){ return worksheetState.types[k]; });
+    if (activeTypes.length === 0) {
+      showToast('⚠️', 'Pick a type', 'Select at least one question type.');
+      return;
+    }
+    var range = getWorksheetTableRange();
+    var n = worksheetState.count;
+    var questions = [];
+    for (var i = 0; i < n; i++) {
+      var t = activeTypes[i % activeTypes.length];
+      // Shuffle a bit so types aren't strictly alternating
+      if (activeTypes.length > 1) t = activeTypes[Math.floor(Math.random() * activeTypes.length)];
+      if (t === 'mult') questions.push(makeMultQuestion(range));
+      else if (t === 'missing') questions.push(makeMissingFactorQuestion(range));
+      else if (t === 'div-no-rem') questions.push(makeLongDivisionQuestion(false));
+      else if (t === 'div-rem') questions.push(makeLongDivisionQuestion(true));
+    }
+    worksheetState.questions = questions;
+    renderWorksheet();
+    document.getElementById('worksheetPrintBtn').disabled = false;
+    var area = document.getElementById('worksheetPrintArea');
+    if (area) area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderWorksheet() {
+    var area = document.getElementById('worksheetPrintArea');
+    var qs = worksheetState.questions;
+    if (qs.length === 0) {
+      area.innerHTML = '<div class="worksheet-empty" id="worksheetEmpty">No worksheet yet — click "Generate worksheet" above.</div>';
+      return;
+    }
+
+    // Detect if all questions are long-division (different layout — 2 cols always)
+    var hasLongDivision = qs.some(function(q) { return q.type === 'div-no-rem' || q.type === 'div-rem'; });
+    var gridCls = hasLongDivision ? 'worksheet-grid' : 'worksheet-grid cols-3';
+
+    var qHtml = qs.map(function(q, i) {
+      return '<div class="worksheet-q">' +
+               '<span class="qnum">' + (i + 1) + '.</span>' +
+               '<div class="qbody">' + q.render() + '</div>' +
+             '</div>';
+    }).join('');
+
+    var dateStr = new Date().toLocaleDateString();
+
+    var html =
+      '<div class="worksheet-page">' +
+        '<div class="worksheet-title">Math Worksheet</div>' +
+        '<div class="worksheet-sub">Polymath Learning Centre · ' + qs.length + ' questions</div>' +
+        '<div class="worksheet-name-row">' +
+          '<span>Name: __________________________</span>' +
+          '<span>Date: ' + dateStr + '</span>' +
+          '<span>Score: ____ / ' + qs.length + '</span>' +
+        '</div>' +
+        '<div class="' + gridCls + '">' + qHtml + '</div>' +
+      '</div>';
+
+    if (worksheetState.includeAnswerKey) {
+      var keyHtml = qs.map(function(q, i) {
+        return '<div class="ak"><strong>' + (i + 1) + '.</strong> ' + q.answerText() + '</div>';
+      }).join('');
+      html +=
+        '<div class="worksheet-page worksheet-answer-key">' +
+          '<div class="worksheet-title">Answer Key</div>' +
+          '<div class="worksheet-sub">' + qs.length + ' questions</div>' +
+          '<div class="worksheet-answer-grid">' + keyHtml + '</div>' +
+        '</div>';
+    }
+
+    area.innerHTML = html;
+  }
+
+  function printWorksheet() {
+    if (worksheetState.questions.length === 0) {
+      showToast('⚠️', 'Nothing to print', 'Generate a worksheet first.');
+      return;
+    }
+    document.body.classList.add('printing-worksheet');
+    // Let layout settle, then trigger print, then remove the class
+    setTimeout(function() {
+      window.print();
+      setTimeout(function() {
+        document.body.classList.remove('printing-worksheet');
+      }, 200);
+    }, 50);
   }
 
   // Run init when DOM is ready
